@@ -20,6 +20,9 @@ function imgCheck($arr)
         if ($info->getExtension() != "png") {
             echo "Erreur! : Fichier $val incompatible!\n";
             unset($arr[$key]);
+        } elseif (!file_exists($val)) {
+            echo "Erreur! : Fichier $val n'existe pas!\n";
+            unset($arr[$key]);
         }
     }
     return $arr;
@@ -28,32 +31,46 @@ function imgCheck($arr)
 function makeImg($imgs)
 {
     global $output;
+    global $osize;
     $pos_x = 0;
     $pos_y = 0;
     $x = 0;
     $y = 0;
     $i = 0;
     foreach ($imgs as $img) {
-        $sizes = getimagesize($img);
-        if ($i == 0) {
-            $y = $sizes[1];
-        } elseif ($sizes[1] > $y) {
-            $y = $sizes[1];
+        if ($osize != []) {
+            $y = $osize[1];
+            $x = $x + $osize[0];
+        } else {
+            $sizes = getimagesize($img);
+            if ($i == 0) {
+                $y = $sizes[1];
+            } elseif ($sizes[1] > $y) {
+                $y = $sizes[1];
+            }
+            $x = $x + $sizes[0];
         }
-        $x = $x + $sizes[0];
         $i++;
     }
     $gdg = imagecreatetruecolor($x, $y);
     foreach ($imgs as $img) {
         $sizes = getimagesize($img);
-        imagecopy($gdg, imagecreatefrompng($img), $pos_x, $pos_y, 0, 0, $sizes[0], $sizes[1]);
-        $pos_x = $pos_x + $sizes[0];
+        if ($osize != []) {
+            $gd = imagecreatetruecolor($osize[0], $osize[1]);
+            imagecopyresampled($gd, imagecreatefrompng($img), 0, 0, 0, 0, $osize[0], $osize[1], $sizes[0], $sizes[1]);
+            imagecopy($gdg, $gd, $pos_x, $pos_y, 0, 0, $osize[0], $osize[1]);
+            $pos_x = $pos_x + $osize[0];
+        } else {
+            imagecopy($gdg, imagecreatefrompng($img), $pos_x, $pos_y, 0, 0, $sizes[0], $sizes[1]);
+            $pos_x = $pos_x + $sizes[0];
+        }
     }
     imagepng($gdg, $output);
 }
 
 function makeCss($imgs)
 {
+    global $osize;
     global $output;
     global $cssoutput;
     $pos_x = 0;
@@ -61,10 +78,18 @@ function makeCss($imgs)
     $x = 0;
     $y = 0;
     $i = 1;
-    $var= "";
+    $var = "";
     foreach ($imgs as $img) {
-        $size = getimagesize($img);
-        $var = $var . ".sprite-$i {background: url('$output') no-repeat; background-position: $pos_x px $pos_y px; width: $size[0] px; height: $size[1] px}\n";
+        if ($osize != []) {
+            $size = $osize;
+        } else {
+            $size = getimagesize($img);
+        }
+        $var = $var . ".sprite-$i {
+    background: url('$output') no-repeat;
+    background-position: $pos_x px $pos_y px;
+    width: $size[0] px; height: $size[1] px
+    }\n";
         $pos_x = $pos_x + $size[0];
         $i++;
     }
@@ -94,30 +119,37 @@ $files = $argv;
 
 array_shift($files);
 
-if (count($files) < 1) {
-    echo "Erreur! : Aucun paramètre passé!\n";
-    die();
-}
-
 $rec = false;
 $output = "output.png";
 $cssoutput = "style.css";
+$osize = [];
 
 foreach ($files as $key => $val) {
-    if ($val == "-r" || $val == "--recursive") {
+    if ($val == "-r") {
         $rec = true;
         unset($files[$key]);
-    } elseif ($val == "-i" || $val == "--output-image") {
+    } elseif ($val == "-i") {
         $output = $files[$key + 1];
         unset($files[$key]);
         unset($files[$key + 1]);
-    } elseif ($val == "-s" || $val == "--output-style") {
+    } elseif ($val == "-s") {
         $cssoutput = $files[$key + 1];
+        unset($files[$key]);
+        unset($files[$key + 1]);
+    } elseif ($val == "-o") {
+        $osize = array($files[$key + 1], $files[$key + 1]);
         unset($files[$key]);
         unset($files[$key + 1]);
     }
 }
+
 $tmp = list_files($files);
 $imgs = imgCheck($tmp);
+
+if ($imgs == []) {
+    echo "Erreur! : Aucun paramètre passé/valide!\n";
+    die();
+}
+
 makeImg($imgs);
 makeCss($imgs);
