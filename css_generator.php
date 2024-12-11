@@ -86,9 +86,10 @@ function makeCss($imgs)
             $size = getimagesize($img);
         }
         $var = $var . ".sprite-$i {
+    display: inline-block;
     background: url('$output') no-repeat;
-    background-position: $pos_x px $pos_y px;
-    width: $size[0] px; height: $size[1] px
+    background-position: -$pos_x" . "px -$pos_y" . "px;
+    width: $size[0]" . "px; height: $size[1]" . "px
     }\n";
         $pos_x = $pos_x + $size[0];
         $i++;
@@ -125,21 +126,26 @@ $cssoutput = "style.css";
 $osize = [];
 
 foreach ($files as $key => $val) {
-    if ($val == "-r") {
-        $rec = true;
-        unset($files[$key]);
-    } elseif ($val == "-i") {
-        $output = $files[$key + 1];
-        unset($files[$key]);
-        unset($files[$key + 1]);
-    } elseif ($val == "-s") {
-        $cssoutput = $files[$key + 1];
-        unset($files[$key]);
-        unset($files[$key + 1]);
-    } elseif ($val == "-o") {
-        $osize = array($files[$key + 1], $files[$key + 1]);
-        unset($files[$key]);
-        unset($files[$key + 1]);
+    switch($val) {
+        case "-r":
+            $rec = true;
+            unset($files[$key]);
+            break;
+        case "-i":
+            $output = $files[$key + 1];
+            unset($files[$key]);
+            unset($files[$key + 1]);
+            break;
+        case "-s":
+            $cssoutput = $files[$key + 1];
+            unset($files[$key]);
+            unset($files[$key + 1]);
+            break;
+        case "-o":
+            $osize = array($files[$key + 1], $files[$key + 1]);
+            unset($files[$key]);
+            unset($files[$key + 1]);
+            break;
     }
 }
 
