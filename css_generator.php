@@ -86,8 +86,9 @@ function makeCss($imgs)
     global $osize;
     global $output;
     global $cssoutput;
-    $pos_x = 0;
-    $pos_y = 0;
+    global $padding;
+    $pos_x = $padding;
+    $pos_y = $padding;
     $x = 0;
     $y = 0;
     $i = 1;
@@ -102,9 +103,10 @@ function makeCss($imgs)
     display: inline-block;
     background: url('$output') no-repeat;
     background-position: -$pos_x" . "px -$pos_y" . "px;
-    width: $size[0]" . "px; height: $size[1]" . "px
+    width: $size[0]" . "px; height: $size[1]" . "px;
+    margin: $padding" . "px;
     }\n";
-        $pos_x = $pos_x + $size[0];
+        $pos_x = $pos_x + $size[0] + 2 * $padding;
         $i++;
     }
     file_put_contents($cssoutput, $var);
