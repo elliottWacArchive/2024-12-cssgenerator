@@ -140,31 +140,40 @@ $osize = [];
 $padding = 0;
 
 foreach ($files as $key => $val) {
-    switch ($val) {
-        case "-r":
-            $rec = true;
-            unset($files[$key]);
-            break;
-        case "-i":
-            $output = $files[$key + 1];
-            unset($files[$key]);
-            unset($files[$key + 1]);
-            break;
-        case "-s":
-            $cssoutput = $files[$key + 1];
-            unset($files[$key]);
-            unset($files[$key + 1]);
-            break;
-        case "-o":
-            $osize = array($files[$key + 1], $files[$key + 1]);
-            unset($files[$key]);
-            unset($files[$key + 1]);
-            break;
-        case "-p":
-            $padding = $files[$key + 1];
-            unset($files[$key]);
-            unset($files[$key + 1]);
-            break;
+    if ($val == "-r" || $val == "--recursive") {
+        $rec = true;
+        unset($files[$key]);
+    } elseif ($val == "-i" || $val == "--output-image") {
+        $output = $files[$key + 1];
+        unset($files[$key]);
+        unset($files[$key + 1]);
+    } elseif ($val == "-s" || $val == "--output-style") {
+        $cssoutput = $files[$key + 1];
+        unset($files[$key]);
+        unset($files[$key + 1]);
+    } elseif ($val == "-o" || $val == "--override-size") {
+        $osize = array($files[$key + 1], $files[$key + 1]);
+        unset($files[$key]);
+        unset($files[$key + 1]);
+    } elseif ($val == "-p" || $val == "--padding") {
+        $padding = $files[$key + 1];
+        unset($files[$key]);
+        unset($files[$key + 1]);
+    } elseif ($val == "-h" || $val == "--help") {
+        echo "\nJe vois que tu as besoin d'aide! (｡˃ ᵕ ˂ )⸝♡\n\n";
+        echo "Execution : css_generator.php [PARAMS] [<path>]\n";
+        echo "Params : \n";
+        echo "  [-h|--help] : envoie la liste des commande.\n";
+        echo "  [-r|--recursive] : parcours des fichiers de manière récursive.\n";
+        echo "  [-s|--output-style] [<file>] : renvoie le fichier css avec le nom passé en paramètre.\n";
+        echo "  [-i|--output-image] [<file>] : renvoie le fichier image avec le nom passé en paramètre.\n";
+        echo "  [-o|--override-size] [<size>] : force la taille des images.\n";
+        echo "  [-p|--padding] [<size>] : ajoute du padding aux images.\n";
+        echo "Path : \n";
+        echo "  [<path> <path> ...] : ajoute toutes les images png dont les chemins sont passés en paramètre.\n";
+        echo "  [<path_dir> <path_dir> ...] : ";
+        echo "ajoute toutes les images png des dossiers dont les chemins sont passés en paramètre.\n";
+        die();
     }
 }
 
