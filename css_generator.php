@@ -30,42 +30,55 @@ function imgCheck($arr)
 
 function makeImg($imgs)
 {
-    global $output;
     global $osize;
+    global $padding;
+    global $output;
     $pos_x = 0;
     $pos_y = 0;
+    $psize = getSize($imgs);
+    $gdg = imagecreatetruecolor($psize[0], $psize[1]);
+    foreach ($imgs as $img) {
+        $sizes = getimagesize($img);
+        $png = imagecreatefrompng($img);
+        if ($osize != []) {
+            $gd = imagecreatetruecolor($osize[0] + (2 * $psize[2]), $osize[1] + (2 * $psize[2]));
+            imagecopyresampled($gd, $png, $psize[2], $psize[2], 0, 0, $osize[0], $osize[1], $sizes[0], $sizes[1]);
+
+            imagecopy($gdg, $gd, $pos_x, $pos_y, 0, 0, $osize[0] + (2 * $psize[2]), $osize[1] + (2 * $psize[2]));
+            $pos_x = $pos_x + $osize[0] + (2 * $psize[2]);
+        } else {
+            $gd = imagecreatetruecolor($sizes[0] + (2 * $psize[2]), $sizes[1] + (2 * $psize[2]));
+            imagecopy($gd, $png, $psize[2], $psize[2], 0, 0, $sizes[0], $sizes[1]);
+            imagecopy($gdg, $gd, $pos_x, $pos_y, 0, 0, $sizes[0] + (2 * $psize[2]), $sizes[1] + (2 * $psize[2]));
+            $pos_x = $pos_x + $sizes[0] + (2 * $psize[2]);
+        }
+    }
+    imagepng($gdg, $output);
+}
+
+function getSize($imgs)
+{
+    global $osize;
+    global $padding;
     $x = 0;
     $y = 0;
     $i = 0;
     foreach ($imgs as $img) {
-        if ($osize != []) {
-            $y = $osize[1];
-            $x = $x + $osize[0];
+        if ($osize != []) { // BOBOBOBOBOBONNNNUS
+            $y = $osize[1] + 2 * $padding;
+            $x = $x + $osize[0] + 2 * $padding;
         } else {
             $sizes = getimagesize($img);
             if ($i == 0) {
-                $y = $sizes[1];
+                $y = $sizes[1] + 2 * $padding;
             } elseif ($sizes[1] > $y) {
-                $y = $sizes[1];
+                $y = $sizes[1] + (2 * $padding);
             }
-            $x = $x + $sizes[0];
+            $x = $x + $sizes[0] + (2 * $padding);
         }
         $i++;
     }
-    $gdg = imagecreatetruecolor($x, $y);
-    foreach ($imgs as $img) {
-        $sizes = getimagesize($img);
-        if ($osize != []) {
-            $gd = imagecreatetruecolor($osize[0], $osize[1]);
-            imagecopyresampled($gd, imagecreatefrompng($img), 0, 0, 0, 0, $osize[0], $osize[1], $sizes[0], $sizes[1]);
-            imagecopy($gdg, $gd, $pos_x, $pos_y, 0, 0, $osize[0], $osize[1]);
-            $pos_x = $pos_x + $osize[0];
-        } else {
-            imagecopy($gdg, imagecreatefrompng($img), $pos_x, $pos_y, 0, 0, $sizes[0], $sizes[1]);
-            $pos_x = $pos_x + $sizes[0];
-        }
-    }
-    imagepng($gdg, $output);
+    return [$x, $y, $padding, $i];
 }
 
 function makeCss($imgs)
@@ -124,9 +137,10 @@ $rec = false;
 $output = "output.png";
 $cssoutput = "style.css";
 $osize = [];
+$padding = 0;
 
 foreach ($files as $key => $val) {
-    switch($val) {
+    switch ($val) {
         case "-r":
             $rec = true;
             unset($files[$key]);
@@ -143,6 +157,11 @@ foreach ($files as $key => $val) {
             break;
         case "-o":
             $osize = array($files[$key + 1], $files[$key + 1]);
+            unset($files[$key]);
+            unset($files[$key + 1]);
+            break;
+        case "-p":
+            $padding = $files[$key + 1];
             unset($files[$key]);
             unset($files[$key + 1]);
             break;
