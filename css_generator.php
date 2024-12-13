@@ -6,6 +6,7 @@ require("imgCheck.php");
 require("makeCss.php");
 require("makeImg.php");
 require("my_scandir.php");
+require("makeHtml.php");
 
 $files = $argv;
 
@@ -16,6 +17,7 @@ $output = "output.png";
 $cssoutput = "style.css";
 $osize = [];
 $padding = 0;
+$hmtl = false;
 
 foreach ($files as $key => $val) {
     if ($val == "-r" || $val == "--recursive") {
@@ -37,12 +39,16 @@ foreach ($files as $key => $val) {
         $padding = $files[$key + 1];
         unset($files[$key]);
         unset($files[$key + 1]);
+    } elseif ($val == "-w" || $val == "--html-file") {
+        $html = true;
+        unset($files[$key]);
     } elseif ($val == "-h" || $val == "--help") {
         echo "\nJe vois que tu as besoin d'aide! (｡˃ ᵕ ˂ )⸝♡\n\n";
         echo "Execution : css_generator.php [PARAMS] [<path>]\n";
         echo "Params : \n";
         echo "  [-h|--help] : envoie la liste des commande.\n";
         echo "  [-r|--recursive] : parcours des fichiers de manière récursive.\n";
+        echo "  [-w|--html-file] : renvoie un fichier css avec toutes les div pour le css.\n";
         echo "  [-s|--output-style] [<file>] : renvoie le fichier css avec le nom passé en paramètre.\n";
         echo "  [-i|--output-image] [<file>] : renvoie le fichier image avec le nom passé en paramètre.\n";
         echo "  [-o|--override-size] [<size>] : force la taille des images.\n";
@@ -65,3 +71,7 @@ if ($imgs == []) {
 
 makeImg($imgs);
 makeCss($imgs);
+
+if (isset($html)) {
+    makeHtml($imgs);
+}
